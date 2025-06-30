@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import cl.duoc.MicroServicioPedidos.Assembler.PedidosAssembler;
 import cl.duoc.MicroServicioPedidos.entity.Pedido;
 import cl.duoc.MicroServicioPedidos.service.PedidoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,13 +27,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/api/pedidos")
+@RequestMapping("/api/v1/pedidos")
 @Tag(name = "Pedidos", description = "Endpoints para trabajar los Pedidos")
 public class PedidoController {
 
     @Autowired
     private PedidoService pedidoService;
-
+    @Autowired 
+    private PedidosAssembler linkapis;
     //endpoint que lista los pedidos
     @GetMapping
     @Operation(summary = "Pedidos", description = "Operación que lista los Pedidos")
@@ -47,7 +49,7 @@ public class PedidoController {
     public ResponseEntity<?> obtenerPedidos() {
         try {
             List<Pedido> pedidos = pedidoService.obtenerPedidos();
-            return ResponseEntity.ok(pedidos);
+            return ResponseEntity.ok(linkapis.toCollectionModel(pedidos));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error al obtener pedidos: " + e.getMessage());
         }
@@ -71,7 +73,7 @@ public class PedidoController {
         try {
             Pedido pedido = pedidoService.obtenerPorId(id);
             return pedido != null
-                    ? ResponseEntity.ok(pedido)
+                    ? ResponseEntity.ok(linkapis.toModel(pedido))
                     : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error al buscar el pedido: " + e.getMessage());
@@ -93,7 +95,7 @@ public class PedidoController {
     public ResponseEntity<?> crearPedido(@RequestBody Pedido pedido) {
         try {
             Pedido nuevoPedido = pedidoService.guardarPedido(pedido);
-            return ResponseEntity.ok(nuevoPedido);
+            return ResponseEntity.ok(linkapis.toModel(nuevoPedido));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error al crear el pedido: " + e.getMessage());
         }
